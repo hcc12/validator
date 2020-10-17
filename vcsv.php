@@ -2,6 +2,17 @@
 	$nChars = "1234567890-";
 	$fChars = "1234567890.-";
 	
+	function cCast(&$ptr, $type) {
+		if ($type == 1)
+			$ptr = intval(implode($ptr));
+		else if ($type == 2)
+			$ptr = floatval(implode($ptr));
+		else if ($type == 0)
+			$ptr = implode($ptr);
+		else return false;
+		return true;
+	}
+	
 	//typy: 0 - typ tekstowy, 1 - int, 2 - float
 	//tryby: 0 - błąd przy nieregularności tablicy, 1 - błąd przy niezgodności danych wejściowych
 	function csv_validate ($fname, $types, $mode) {
@@ -30,18 +41,17 @@
 						}
 				break;
 				case ',':
-					if(!$depth)
+					if(!$depth){
+						if(!cCast($ret[$lines][$col], $types[$col])) return sprintf("Błędny typ dla kolumny %d", $col + 1);
 						$ret[$lines][++$col] = array();
+					}
 				break;
 				
 				case "\n":
 					if(!$depth) {
 						if(count($ret[$lines]) != count($types))
 							return sprintf("Błędna liczba kolumn w linii %d (%d z %d)", $lines+1, count($ret[$lines]), count($types));
-						if ($types[$col] == 1)
-							$ret[$lines][$col] = intval(implode($ret[$lines][$col]));
-						else if ($types[$col] == 2)
-							$ret[$lines][$col] = floatval(implode($ret[$lines][$col]));
+						if(!cCast($ret[$lines][$col], $types[$col])) return sprintf("Błędny typ dla kolumny %d", $col + 1);
 						$ret[++$lines] = array();
 						$col = 0;
 						$ret[$lines][$col] = array();
@@ -88,5 +98,13 @@
 		}
 		return $ret;
 	}
-		
+	/*echo "<pre>";
+	$arr = csv_validate("plik.csv", array(0, 0, 0, 0, 0, 2), 1);
+	if(gettype($arr) == "string")
+		printf("%s", $arr);
+	else
+		for($i = 0; $i < count($arr) ; $i++)
+			printf("%s %s %s %s %s %f\n", 
+				$arr[$i][0], $arr[$i][1], $arr[$i][2], $arr[$i][3], $arr[$i][4], $arr[$i][5]);*/
+	
 ?>
